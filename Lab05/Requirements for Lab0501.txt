@@ -1,0 +1,167 @@
+# Lab 5-1: Decision Trees and Overfitting
+
+In this lab, we'll explore using decision trees to make classification
+decisions on one simple binary classification task: sentiment analysis (情感分析)
+(is this review a positive or negative evaluation of a product?).
+
+We'll use for prediction are simply the presence/absence of words in
+the text. If you look in data/sentiment.tr, you'll see training data
+for the sentiment prediction task. The first column is zero or one (one =
+positive, zero = negative). The rest is a list of all the words that
+appear in this product reivew. These are *binary* features: any word
+listed has value "=1" and any word not listed has value "=0"
+(implicitly... it would be painful to list all non-occurring words!).
+
+## Before you begin ...
+如果你在Shell环境中做本实验。
+确保当前的工作目录为你实验文件所在目录，你可以通过下述方式设置工作目录:
+
+<pre>
+% python
+>>> import os
+>>> os.getcwd()
+>>> os.chdir("E:\\Question")
+</pre>
+
+
+# TASK 1: UNDERSTANDING WHAT DECISION TREES ARE DOING （任务1：理解决策树）
+
+Train a decision tree of (maximum) depth 2 on the sentiment data.
+
+First, we need to load the data （首先，我们需要导入数据）:
+在data文件夹中有三个文件，分别是训练集、开发集和测试集
+在data.py模块中loadTextDataBinary方法用于从文件中读入数据，
+并实现CountVectorizer(binary=True)的特征提取，
+返回的dictionary用于提取开发集和测试集的数据特征
+<pre>
+>>> from data import *
+>>> X,Y,dictionary = loadTextDataBinary('data/sentiment.tr')
+>>> X.shape
+(1400, 3473)
+>>> Y.shape
+(1400,)
+</pre>
+
+We have successfully loaded 1400 examples of sentiment training data. The vocabulary sie is 3473 words; we can look at the first ten words (arbitrarily sorted):
+
+<pre>
+>>> dictionary[:10]
+['hanging', 'woody', 'originality', 'bringing', 'wooden', 'woods', 'stereotypical', 'shows', 'replaced', 'china']
+</pre>
+
+Now, we can train a depth one decision tree (aka "decision stump") on this data:
+（下面代码训练深度为1的决策树）
+<pre>
+>>> from sklearn.tree import DecisionTreeClassifier
+>>> dt = DecisionTreeClassifier(max_depth=1)
+>>> dt.fit(X, Y)
+DecisionTreeClassifier(compute_importances=None, criterion='gini',
+            max_depth=1, max_features=None, min_density=None,
+            min_samples_leaf=1, min_samples_split=2, random_state=None,
+            splitter='best')
+>>> showTree(dt, dictionary)
+bad?
+-N-> class 1	(333 for class 0, 533 for class 1)
+-Y-> class 0	(358 for class 0, 176 for class 1)
+</pre>
+
+
+This shows that if you only have one question you can ask about the
+review it's that you should ask if the review contains the word "bad"
+or not. If it does not ("N") then it's probably a positive review (by
+a vote of 533 to 333); if it does ("Y") then it's probable a negative
+review (by a vote of 358 to 176).
+
+Your first task is to build a depth two decision tree.
+（你的第一个任务是构造深度为2的决策树，并回答下面问题）
+A) Draw the tree.
+（画出生成的决策树）
+B) Convince yourself whether or not it is useful to go from depth one
+to depth two on this data. How do you know?
+（在该数据集上，将决策树的max_depth从1提高到2是否有助于提高决策树性能？为什么？）
+
+C) It's important to recognize that decision trees are essentially
+learning *conjunctions* （逻辑与或者合取）of features. In particular, you can convert a
+decision tree to a sequence of if-then-else statements, of the form:
+（决策树的本质是学习属性间的逻辑与，我们可以把决策树转化为由一系列if-then-else语句构成的决策列表）
+
+  if    A and  B and  C and  D then return POSITIVE
+  elif  A and  B and  C and !D then return NEGATIVE
+  elif  ...
+
+This is called a "decision list." Write down the decision list
+corresponding to the tree that you learned of depth 2.
+（写出深度为2的决策树对应的决策列表）
+
+D) Build a depth three decision tree and "explain" it. In other words,
+if your boss asked you to tell her, intuitively, what your tree is
+doing, how would you explain it? Write a few sentences.
+（构造一颗深度为3的决策树，并解释该决策树）
+
+E) It's not enough to just think about training data; we need to see
+how well these trees generalize to new data. First, let's look at
+training accuracy for different trees:
+（单纯训练集上的性能是不够的，我们真正关心的是决策树的泛化能力）
+
+Depth 1:
+深度为1的决策树的训练准确率
+<pre>
+>>> np.mean(dt.predict(X) == Y)
+0.63642857142857145
+</pre>
+
+(Brief explanation: dt.predict(X) returns one prediction for each
+training example. We check to see if each of these is equal to Y or
+not. We want the average number that are equal, which is what the mean
+is doing. This gives us our training accuracy.)
+
+Depth 2:
+深度为2的决策树的训练准确率
+<pre>
+>>> np.mean(dt.predict(X) == Y)
+0.66000000000000003
+</pre>
+
+So the depth two tree does indeed fit the training data better. What about development data?
+深度为1的决策树的开发集上准确率
+<pre>
+>>> Xde,Yde,_ = loadTextDataBinary('data/sentiment.de', dictionary)
+>>> np.mean(dt.predict(Xde) == Yde)
+0.62
+</pre>
+
+(Note: when we load the development data, we have to give it the
+dictionary we built on the training data so that words are mapped to
+integers in the same way!)
+(注意:当我们加载development 数据时，我们必须给它一个基于训练数据构建的字典，以便以同样的方式将单词映射为整数!)
+
+Here, we see that the accuracy has dropped a bit.
+
+# TASK 2: UNDERFITTING AND OVERFITTING （任务2：欠拟合与过拟合）
+
+A) For all possible depths from depth 1 to depth 20, compute training
+error, development error and test error for the corresponding decision
+tree (hint: use a for loop :P).  Plot these three curves.
+
+Xde,Yde,_ = loadTextDataBinary('data/sentiment.de', dictionary)
+Xte,Yte,_ = loadTextDataBinary('data/sentiment.te', dictionary)
+import numpy as np
+accs = np.zeros((20,3))
+for each depth from 1 to 20:
+   创建深度为depth的决策树
+   用训练集fit决策树
+   分别用决策树预测训练集、开发集和测试集，并将结果存入accs
+   
+import matplotlib.pyplot as plt
+用plt画出结果曲线
+
+B) What trend do you observe for the training error rates? Why should
+this happen? （观察结果变化的规律，并说明为什么？）
+
+C) If you were to choose the depth hyperparameter based on TRAINING
+data, what TEST error would you get? If you were to choose depth based
+on the DEV data, what TEST error would you get? Finally, if you were
+to choose the depth based on the TEST data, what TEST error would you
+get. Precisely one of these three is "correct" -- which one and why?
+（如果你想寻找最优的depth，你应该基于训练集、开发集还是测试集做？）
+

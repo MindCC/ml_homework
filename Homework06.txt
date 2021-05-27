@@ -1,0 +1,21 @@
+下表是根据天气情况预测是否去打网球（play）的数据集，
+主要包括天气（outlook）、温度（temperature）、湿度（humidity）和是否有风（windy）4个属性。
+数据集共14条数据。
+假设某天的天气情况为X=<sunny, mild, normal, true> .
+请根据朴素贝叶斯方法确定在该天是否play。
+
+NO. Outlook temperature humidity windy play
+1 sunny hot high FALSE no
+2 sunny hot high TRUE no
+3 overcast hot high FALSE yes
+4 rainy mild high FALSE yes
+5 rainy cool normal FALSE yes
+6 rainy cool normal TRUE no
+7 overcast cool normal TRUE yes
+8 sunny mild high FALSE no
+9 sunny cool normal FALSE yes
+10 rainy mild normal FALSE yes
+11 sunny mild normal TRUE yes
+12 overcast mild high TRUE yes
+13 overcast hot normal FALSE yes
+14 rainy mild high TRUE no

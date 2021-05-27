@@ -1,0 +1,63 @@
+参考：https://www.cnblogs.com/yifanrensheng/p/12355009.html
+1. 说明什么是多类分类问题的OvO和OvR拆分策略，假设一个多类分类问题共有5种类别，
+这两种策略分别需要训练多少个分类器？
+
+1. OvO：10个分类器   OvR：5个分类器
+
+2. 三种方法来解决一个多标签分类问题，即问题转换、改编算法和集成方法。
+问题转换方法把多标签问题转换为单标签问题，这种方法可以用三种不同的方式进行:
+二元关联（Binary Relevance）把每个标签当作单独的一个类分类问题
+分类器链（Classifier Chains）采用二元分类器链的形式。
+标签Powerset（Label Powerset）将问题转化为一个多类问题。
+对下面的数据集，说明Binary Relevance和Label Powerset的处理结果。
+X  y1  y2  y3  y4
+x1 0   1    1   0
+x2 1   0    0   1
+x3 0   1    1   0
+x4 0   1    0   0
+x5 1   0    0   1
+x6 1   0    0   1
+
+2.Binary Relevance：
+X   y1        X   y2        X   y3         X    y4
+x1  0         x1   1        x1   1         x1    0
+x2  1         x2   0        x2   0         x2    1
+x3  0         x3   1        x3   1         x3    0
+x4  0         x4   1        x4   0         x4    0
+x5  1         x5   0        x5   0         x5    1
+x6  1         x6   0        x6   0         x6    1
+Label Powerset：
+X   y1        
+x1  1         
+x2  2        
+x3  1         
+x4  3         
+x5  4         
+x6  4 
+
+3. 对下面的数据集，假设采用多分支策略，根据信息增益、信息增益率和基尼指数选择根节点上的最佳属性。
+（思考：如果采用双分支策略，如何计算信息增益、信息增益率和基尼指数并选择最佳属性？）
+表1 天气预报数据集例子
+Outlook	Temperature	Humidity	Windy	Play?
+sunny	hot		high	false	no
+sunny	hot		high	true	no
+overcast	hot		high	false	yes
+rain	mild		high	false	yes
+rain	cool		normal	false	yes
+rain	cool		normal	true	no
+overcast	cool		normal	true	yes
+sunny	mild		high	false	no
+sunny	cool		normal	false	yes
+rain	mild		normal	false	yes
+sunny	mild		normal	true	yes
+overcast	mild		high	true	yes
+overcast	hot		normal	false	yes
+rain	mild		high	true	no
+
+
+3.最佳属性：
+根据信息增益：outlook
+
+根据信息增益率：outlook
+
+根据基尼指数：outlook 
